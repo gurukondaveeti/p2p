@@ -1,0 +1,14 @@
+# Build artifacts
+tracker/tracker
+client/client
+**/*.o
+
+# Runtime state produced by running trackers/clients
+tracker*_oplog.bin
+*.log
+*.pid
+*.keepalive.pid
+
+# Scratch test run directories
+test/run/
+test/scratch/
