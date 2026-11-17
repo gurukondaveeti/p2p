@@ -61,6 +61,7 @@ private:
     uint16_t mySyncPort_;
 
     std::atomic<int> connFd_{-1};
+    std::atomic<int> listenFd_{-1}; // acceptor only; stop() shuts it down to wake accept()
     std::mutex writeMu_; // serializes writes to connFd_ across many caller threads
     std::atomic<bool> running_{false};
     std::thread worker_;

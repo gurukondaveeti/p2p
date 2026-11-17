@@ -32,6 +32,8 @@ void TrackerSync::stop() {
     running_ = false;
     int fd = connFd_.exchange(-1);
     if (fd >= 0) ::shutdown(fd, SHUT_RDWR); // unblocks a thread stuck in recv()
+    int lfd = listenFd_.exchange(-1);
+    if (lfd >= 0) ::shutdown(lfd, SHUT_RDWR); // unblocks the acceptor stuck in accept()
     if (worker_.joinable()) worker_.join();
 }
 
@@ -69,6 +71,7 @@ void TrackerSync::acceptorLoop() {
         return;
     }
     P2P_LOG_INFO("tracker-sync: listening for peer tracker on port " + std::to_string(mySyncPort_));
+    listenFd_.store(listener.fd());
 
     while (running_) {
         int fd = ::accept(listener.fd(), nullptr, nullptr);
@@ -81,6 +84,7 @@ void TrackerSync::acceptorLoop() {
         runConnection(fd); // blocks until the link drops, then we accept() again
         P2P_LOG_WARN("tracker-sync: peer tracker link closed, awaiting reconnect");
     }
+    listenFd_.store(-1);
 }
 
 void TrackerSync::handshakeAndCatchup(int fd) {

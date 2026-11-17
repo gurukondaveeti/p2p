@@ -2,6 +2,7 @@
 tracker/tracker
 client/client
 **/*.o
+**/*.d
 
 # Runtime state produced by running trackers/clients
 tracker*_oplog.bin
