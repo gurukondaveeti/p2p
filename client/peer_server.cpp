@@ -29,7 +29,11 @@ bool PeerServer::start() {
 
 void PeerServer::stop() {
     running_ = false;
-    if (listenFd_ >= 0) { ::close(listenFd_); listenFd_ = -1; }
+    if (listenFd_ >= 0) {
+        ::shutdown(listenFd_, SHUT_RDWR); // close() alone doesn't wake accept() on Linux
+        ::close(listenFd_);
+        listenFd_ = -1;
+    }
     if (thread_.joinable()) thread_.join();
 }
 

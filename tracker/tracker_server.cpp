@@ -46,10 +46,13 @@ TrackerServer::TrackerServer(TrackerState& state, TrackerSync& sync, std::string
 
 void TrackerServer::stop() {
     running_ = false;
-    // Closing the listening fd out from under the blocked accept() call in
-    // run() (running on a different thread) is the standard way to unblock
-    // it on Linux -- accept() returns with EBADF and the loop exits.
-    if (listenFd_ >= 0) { ::close(listenFd_); listenFd_ = -1; }
+    // On Linux, close() alone does not wake a thread blocked in accept() on
+    // this fd; shutdown() does (accept returns EINVAL and run() exits).
+    if (listenFd_ >= 0) {
+        ::shutdown(listenFd_, SHUT_RDWR);
+        ::close(listenFd_);
+        listenFd_ = -1;
+    }
 
     {
         std::lock_guard<std::mutex> lock(clientsMu_);
